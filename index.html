@@ -28,6 +28,8 @@
 <body>
   <div class="wrap">
     <h1>Prompt Catalog</h1>
+    <input id="search" type="text" placeholder="חיפוש בפרומפט / סוג / קישור..." style="width:100%;max-width:480px;border:1px solid #d1d5db;border-radius:10px;padding:10px;margin:8px 0 14px" />
+    <div id="count" class="meta" style="margin-bottom:8px"></div>
     <div id="list">טוען...</div>
   </div>
   <div id="toast" class="toast">הועתק</div>
@@ -70,27 +72,50 @@
     fetch('./data.csv').then(r=>r.text()).then(t=>{
       const rows=parseCSV(t); const head=rows.shift()||[];
       const idx=Object.fromEntries(head.map((h,i)=>[h.trim(),i]));
-      const list=document.getElementById('list'); list.innerHTML='';
-      rows.forEach(r=>{
-        const img=r[idx.image_url]||''; const prompt=r[idx.prompt]||'';
-        const post=r[idx.post_link]||''; const fb=r[idx.facebook_link]||''; const type=r[idx.type]||'';
-        const el=document.createElement('div'); el.className='card';
-        el.innerHTML=`<div><img src="${img}" loading="lazy" /></div>
-          <div>
-            <div class="meta">סוג: <b>${type}</b> · <a href="${post}" target="_blank">טלגרם</a> · <a href="${fb}" target="_blank">פייסבוק</a></div>
-            <div class="prompt">${prompt || '—'}</div>
-            <div class="actions">
-              <button class="btn" data-copy-prompt>העתקת פרומפט</button>
-              <button class="btn" data-copy-image>העתקת כתובת תמונה</button>
-              <a class="btn" href="${fb || post}" target="_blank">פתיחת כתובת פוסט</a>
-            </div>
-          </div>`;
-        el.querySelector('[data-copy-prompt]')?.addEventListener('click',()=>copyText(prompt,'פרומפט'));
-        el.querySelector('[data-copy-image]')?.addEventListener('click',()=>copyText(img,'כתובת תמונה'));
-        el.querySelector('img')?.addEventListener('click',()=>{ if(!img) return; modalImg.src=img; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); });
-        list.appendChild(el);
-      });
-      if(!rows.length) list.innerHTML='אין נתונים להצגה';
+      const list=document.getElementById('list');
+      const count=document.getElementById('count');
+      const search=document.getElementById('search');
+
+      const items = rows.map(r=>({
+        img:r[idx.image_url]||'',
+        prompt:r[idx.prompt]||'',
+        post:r[idx.post_link]||'',
+        fb:r[idx.facebook_link]||'',
+        type:r[idx.type]||''
+      }));
+
+      function render(filter=''){
+        list.innerHTML='';
+        const q=filter.trim().toLowerCase();
+        const filtered = !q ? items : items.filter(x =>
+          (x.prompt+' '+x.type+' '+x.post+' '+x.fb).toLowerCase().includes(q)
+        );
+        count.textContent = `מציג ${filtered.length} מתוך ${items.length}`;
+
+        filtered.forEach(x=>{
+          const {img,prompt,post,fb,type}=x;
+          const el=document.createElement('div'); el.className='card';
+          el.innerHTML=`<div><img src="${img}" loading="lazy" /></div>
+            <div>
+              <div class="meta">סוג: <b>${type}</b> · <a href="${post}" target="_blank">טלגרם</a> · <a href="${fb}" target="_blank">פייסבוק</a></div>
+              <div class="prompt">${prompt || '—'}</div>
+              <div class="actions">
+                <button class="btn" data-copy-prompt>העתקת פרומפט</button>
+                <button class="btn" data-copy-image>העתקת כתובת תמונה</button>
+                <a class="btn" href="${fb || post}" target="_blank">פתיחת כתובת פוסט</a>
+              </div>
+            </div>`;
+          el.querySelector('[data-copy-prompt]')?.addEventListener('click',()=>copyText(prompt,'פרומפט'));
+          el.querySelector('[data-copy-image]')?.addEventListener('click',()=>copyText(img,'כתובת תמונה'));
+          el.querySelector('img')?.addEventListener('click',()=>{ if(!img) return; modalImg.src=img; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); });
+          list.appendChild(el);
+        });
+
+        if(!filtered.length) list.innerHTML='<div class="meta">אין תוצאות לחיפוש</div>';
+      }
+
+      search.addEventListener('input', e=>render(e.target.value));
+      render('');
     }).catch(()=>document.getElementById('list').textContent='שגיאה בטעינת הנתונים');
   </script>
 </body>
