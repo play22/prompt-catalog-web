@@ -54,7 +54,8 @@
       padding:7px 11px;font-size:12px;color:#334155
     }
     .chip button{all:unset;cursor:pointer}
-    .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+    .chip.active b{color:#fff}
 
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
     .detailPanel{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin:8px 0 14px;box-shadow:var(--shadow)}
@@ -223,7 +224,7 @@
       const compactBtn=document.getElementById('compactBtn');
       const galleryBtn=document.getElementById('galleryBtn');
 
-      let activeCategory='הכל';
+      let activeCategories=new Set(['הכל']);
       let viewMode='expanded';
       let selectedItem=null;
       const expandedPrompts=new Set();
@@ -260,29 +261,43 @@
       function computeFiltered(query=''){
         const q=query.trim().toLowerCase();
         let filtered=items;
-        if(activeCategory!=='הכל') filtered=filtered.filter(x=>x.category===activeCategory);
+        const allSelected = activeCategories.has('הכל');
+        if(!allSelected){
+          filtered=filtered.filter(x=>activeCategories.has(x.category));
+        }
         if(q) filtered=filtered.filter(x => (
           `${x.prompt} ${x.type} ${x.post} ${x.fb} ${x.category} ${x.desc} ${x.outcome}`.toLowerCase().includes(q)
         ));
         return filtered;
       }
 
-      function renderSummary(filtered){
+      function toggleCategory(cat){
+        if(cat==='הכל'){
+          activeCategories = new Set(['הכל']);
+          return;
+        }
+        if(activeCategories.has('הכל')) activeCategories.delete('הכל');
+        if(activeCategories.has(cat)) activeCategories.delete(cat);
+        else activeCategories.add(cat);
+        if(activeCategories.size===0) activeCategories = new Set(['הכל']);
+      }
+
+      function renderSummary(){
         const byCat={};
-        for(const it of filtered){ byCat[it.category]=(byCat[it.category]||0)+1; }
+        for(const it of items){ byCat[it.category]=(byCat[it.category]||0)+1; }
         summary.innerHTML='';
 
         const total=document.createElement('span');
-        total.className='chip'+(activeCategory==='הכל'?' active':'');
-        total.innerHTML=`<button type="button">הכל <b>(${filtered.length})</b></button>`;
-        total.onclick=()=>{ activeCategory='הכל'; render(search.value); };
+        total.className='chip'+(activeCategories.has('הכל')?' active':'');
+        total.innerHTML=`<button type="button">הכל <b>(${items.length})</b></button>`;
+        total.onclick=()=>{ toggleCategory('הכל'); render(search.value); };
         summary.appendChild(total);
 
         Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([cat,n])=>{
           const el=document.createElement('span');
-          el.className='chip'+(activeCategory===cat?' active':'');
+          el.className='chip'+(activeCategories.has(cat)?' active':'');
           el.innerHTML=`<button type="button">${escapeHtml(cat)} <b>(${n})</b></button>`;
-          el.onclick=()=>{ activeCategory=cat; render(search.value); };
+          el.onclick=()=>{ toggleCategory(cat); render(search.value); };
           summary.appendChild(el);
         });
       }
@@ -335,8 +350,9 @@
       function render(query=''){
         list.innerHTML='';
         const filtered=computeFiltered(query);
-        count.textContent=`מציג ${filtered.length} מתוך ${items.length}`;
-        renderSummary(computeFiltered(search.value));
+        const selectedLabel = activeCategories.has('הכל') ? 'כל הקטגוריות' : Array.from(activeCategories).join(', ');
+        count.textContent=`מציג ${filtered.length} מתוך ${items.length} · סינון: ${selectedLabel}`;
+        renderSummary();
 
         filtered.forEach(x=>{
           const isPromptOpen = expandedPrompts.has(x.id);
