@@ -95,6 +95,7 @@
 
     .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
     .actions .btn{justify-content:center;padding:9px 8px}
+    .btn.danger{background:#fff5f5;border-color:#fecaca;color:#b91c1c}
 
     .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:9px 13px;border-radius:9px;font-size:13px;opacity:0;transition:.2s;z-index:10001}
     .toast.show{opacity:1}
@@ -139,6 +140,7 @@
       <a class="btn" href="./panha.html">לעמוד פרופיל שני</a>
       <a class="btn" href="./graphics.csv" target="_blank">CSV מקור</a>
       <span class="chip">v3 גלריה</span>
+      <button class="btn" id="exportHiddenBtn" type="button" style="display:none">ייצוא חסומים</button>
     </div>
 
     <div class="hero">
@@ -193,6 +195,28 @@
       .replaceAll('"','&quot;')
       .replaceAll("'",'&#39;');
 
+    const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
+    const LOCAL_HIDDEN_KEY='prompt_catalog_hidden_ids';
+    let localHiddenIds = new Set(JSON.parse(localStorage.getItem(LOCAL_HIDDEN_KEY)||'[]'));
+    let globalHiddenIds = new Set();
+
+    function makeId(item){
+      const base=`${item.img}|${item.prompt}|${item.fb||item.post}`;
+      let h=0;
+      for(let i=0;i<base.length;i++) h=((h<<5)-h)+base.charCodeAt(i), h|=0;
+      return 'id_'+Math.abs(h);
+    }
+
+    async function loadGlobalHidden(){
+      try{
+        const r=await fetch('./removed_ids.json',{cache:'no-store'});
+        if(!r.ok) return;
+        const j=await r.json();
+        const ids=Array.isArray(j)?j:(j.ids||[]);
+        globalHiddenIds = new Set(ids);
+      }catch{}
+    }
+
     function showToast(msg){
       const t=document.getElementById('toast');
       t.textContent=msg; t.classList.add('show');
@@ -223,6 +247,8 @@
       const expandedBtn=document.getElementById('expandedBtn');
       const compactBtn=document.getElementById('compactBtn');
       const galleryBtn=document.getElementById('galleryBtn');
+      const exportHiddenBtn=document.getElementById('exportHiddenBtn');
+      if(isAdmin && exportHiddenBtn) exportHiddenBtn.style.display='inline-flex';
 
       let activeCategories=new Set(['הכל']);
       let viewMode='expanded';
@@ -246,7 +272,7 @@
         const prompt = (r[idx.prompt]||'').trim();
         const img=(r[idx.image_url]||'').trim();
         return {
-          id: `${i}-${img.slice(-24)}`,
+          id: '',
           img,
           prompt,
           post:(r[idx.post_link]||'').trim(),
@@ -256,7 +282,7 @@
           desc:(r[idx.description_he]||'').trim() || inferOutcome(prompt, category),
           outcome: inferOutcome(prompt, category)
         };
-      }).filter(x=>x.img && x.prompt);
+      }).filter(x=>x.img && x.prompt).map(x=>({ ...x, id: makeId(x)})).filter(x=>!globalHiddenIds.has(x.id) && !localHiddenIds.has(x.id));
 
       function computeFiltered(query=''){
         const q=query.trim().toLowerCase();
@@ -393,7 +419,7 @@
               <div class="actions">
                 <button class="btn ghost" data-copy-prompt>העתקת פרומפט</button>
                 <button class="btn ghost" data-copy-image>העתקת כתובת תמונה</button>
-                <a class="btn primary" href="${x.fb || x.post || x.img}" target="_blank">פתיחת כתובת פוסט</a>
+                <a class="btn primary" href="${x.fb || x.post || x.img}" target="_blank">פתיחת כתובת פוסט</a>${isAdmin?`<button class="btn danger" data-hide-id="${x.id}">הסרה</button>`:""}
               </div>
             </div>`;
 
@@ -418,6 +444,16 @@
             modal.setAttribute('aria-hidden','false');
           });
 
+          const hideBtn = el.querySelector('[data-hide-id]');
+          if(hideBtn){
+            hideBtn.addEventListener('click',()=>{
+              localHiddenIds.add(x.id);
+              localStorage.setItem(LOCAL_HIDDEN_KEY, JSON.stringify(Array.from(localHiddenIds)));
+              showToast('הוסתר מקומית. לגלובלי: ייצא חסומים ושלח לי.');
+              render(search.value);
+            });
+          }
+
           list.appendChild(el);
         });
 
@@ -433,8 +469,18 @@
       compactBtn.addEventListener('click', ()=>setViewMode('compact'));
       galleryBtn.addEventListener('click', ()=>setViewMode('gallery'));
 
-      setViewMode('gallery');
-      render('');
+      if(exportHiddenBtn){
+        exportHiddenBtn.addEventListener('click',()=>{
+          const payload=JSON.stringify({ids:Array.from(localHiddenIds)},null,2);
+          copyText(payload,'removed_ids.json');
+        });
+      }
+
+      (async ()=>{
+        await loadGlobalHidden();
+        setViewMode('gallery');
+        render('');
+      })();
     }).catch(()=>document.getElementById('list').textContent='שגיאה בטעינת הנתונים');
   </script>
 </body>
