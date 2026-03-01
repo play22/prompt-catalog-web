@@ -1,0 +1,55 @@
+﻿<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prompt Catalog</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f7f7fb;color:#111}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    h1{font-size:22px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:180px 1fr;gap:12px}
+    img{width:100%;height:120px;object-fit:cover;border-radius:8px;background:#eee}
+    .meta{font-size:13px;color:#444}
+    .prompt{white-space:pre-wrap;font-size:14px;line-height:1.45}
+    a{color:#2563eb;text-decoration:none}
+    @media (max-width:700px){.card{grid-template-columns:1fr} img{height:180px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Prompt Catalog</h1>
+    <div id="list">טוען...</div>
+  </div>
+  <script>
+    function parseCSV(text){
+      const rows=[]; let i=0, cur='', row=[], q=false;
+      while(i<text.length){ const c=text[i];
+        if(c==='"'){ if(q && text[i+1]==='"'){ cur+='"'; i++; } else q=!q; }
+        else if(c===',' && !q){ row.push(cur); cur=''; }
+        else if((c==='\n' || c==='\r') && !q){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(cur); if(row.some(x=>x!=='')) rows.push(row); row=[]; cur=''; }
+        else cur+=c; i++;
+      }
+      if(cur.length||row.length){ row.push(cur); rows.push(row); }
+      return rows;
+    }
+    fetch('./data.csv').then(r=>r.text()).then(t=>{
+      const rows=parseCSV(t); const head=rows.shift()||[];
+      const idx=Object.fromEntries(head.map((h,i)=>[h.trim(),i]));
+      const list=document.getElementById('list'); list.innerHTML='';
+      rows.forEach(r=>{
+        const img=r[idx.image_url]||''; const prompt=r[idx.prompt]||'';
+        const post=r[idx.post_link]||''; const fb=r[idx.facebook_link]||''; const type=r[idx.type]||'';
+        const el=document.createElement('div'); el.className='card';
+        el.innerHTML=`<div><img src="${img}" loading="lazy" /></div>
+          <div>
+            <div class="meta">סוג: <b>${type}</b> · <a href="${post}" target="_blank">טלגרם</a> · <a href="${fb}" target="_blank">פייסבוק</a></div>
+            <div class="prompt">${prompt || '—'}</div>
+          </div>`;
+        list.appendChild(el);
+      });
+      if(!rows.length) list.innerHTML='אין נתונים להצגה';
+    }).catch(()=>document.getElementById('list').textContent='שגיאה בטעינת הנתונים');
+  </script>
+</body>
+</html>
