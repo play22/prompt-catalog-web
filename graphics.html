@@ -47,8 +47,16 @@
     fetch('./graphics.csv').then(r=>r.text()).then(t=>{
       const rows=parseCSV(t); const head=rows.shift()||[]; const idx=Object.fromEntries(head.map((h,i)=>[h.trim(),i]));
       const list=document.getElementById('list'), count=document.getElementById('count'), search=document.getElementById('search');
-      const items=rows.map(r=>({img:r[idx.image_url]||'',prompt:r[idx.prompt]||'',post:r[idx.post_link]||'',fb:r[idx.facebook_link]||'',type:r[idx.type]||''}));
-      function render(q=''){list.innerHTML='';const f=q.trim().toLowerCase();const filtered=!f?items:items.filter(x=>(x.prompt+' '+x.type+' '+x.post+' '+x.fb).toLowerCase().includes(f));count.textContent=`מציג ${filtered.length} מתוך ${items.length}`;filtered.forEach(x=>{const el=document.createElement('div');el.className='card';el.innerHTML=`<div><img src="${x.img}" loading="lazy" /></div><div><div class="meta">סוג: <b>${x.type}</b> · <a href="${x.post}" target="_blank">טלגרם</a> · <a href="${x.fb}" target="_blank">פייסבוק</a></div><div class="prompt">${x.prompt||'—'}</div><div class="actions"><button class="btn" data-copy-prompt>העתקת פרומפט</button><button class="btn" data-copy-image>העתקת כתובת תמונה</button><a class="btn" href="${x.fb||x.post}" target="_blank">פתיחת כתובת פוסט</a></div></div>`;el.querySelector('[data-copy-prompt]').addEventListener('click',()=>copyText(x.prompt,'פרומפט'));el.querySelector('[data-copy-image]').addEventListener('click',()=>copyText(x.img,'כתובת תמונה'));el.querySelector('img').addEventListener('click',()=>{if(!x.img)return;modalImg.src=x.img;modal.classList.add('open');modal.setAttribute('aria-hidden','false')});list.appendChild(el)});if(!filtered.length)list.innerHTML='<div class="meta">אין תוצאות</div>'}
+      const items=rows.map(r=>({
+        img:r[idx.image_url]||'',
+        prompt:r[idx.prompt]||'',
+        post:r[idx.post_link]||'',
+        fb:r[idx.facebook_link]||'',
+        type:r[idx.type]||'',
+        category:r[idx.category_he]||'כללי',
+        desc:r[idx.description_he]||'יוצרים תמונה יצירתית כללית לפי הפרומפט.'
+      }));
+      function render(q=''){list.innerHTML='';const f=q.trim().toLowerCase();const filtered=!f?items:items.filter(x=>(x.prompt+' '+x.type+' '+x.post+' '+x.fb+' '+x.category+' '+x.desc).toLowerCase().includes(f));count.textContent=`מציג ${filtered.length} מתוך ${items.length}`;filtered.forEach(x=>{const el=document.createElement('div');el.className='card';el.innerHTML=`<div><img src="${x.img}" loading="lazy" /></div><div><div class="meta">סוג: <b>${x.type}</b> · קטגוריה: <b>${x.category}</b> · <a href="${x.post}" target="_blank">טלגרם</a> · <a href="${x.fb}" target="_blank">פייסבוק</a></div><div class="prompt">${x.prompt||'—'}</div><div class="meta" style="margin-top:6px">${x.desc}</div><div class="actions"><button class="btn" data-copy-prompt>העתקת פרומפט</button><button class="btn" data-copy-image>העתקת כתובת תמונה</button><a class="btn" href="${x.fb||x.post}" target="_blank">פתיחת כתובת פוסט</a></div></div>`;el.querySelector('[data-copy-prompt]').addEventListener('click',()=>copyText(x.prompt,'פרומפט'));el.querySelector('[data-copy-image]').addEventListener('click',()=>copyText(x.img,'כתובת תמונה'));el.querySelector('img').addEventListener('click',()=>{if(!x.img)return;modalImg.src=x.img;modal.classList.add('open');modal.setAttribute('aria-hidden','false')});list.appendChild(el)});if(!filtered.length)list.innerHTML='<div class="meta">אין תוצאות</div>'}
       search.addEventListener('input',e=>render(e.target.value));render('');
     }).catch(()=>document.getElementById('list').textContent='שגיאה בטעינת הנתונים');
   </script>
