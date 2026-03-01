@@ -17,6 +17,9 @@
     .searchRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
     #search{width:min(560px,100%);border:1px solid #cfd4dc;border-radius:12px;padding:11px 12px;font-size:14px;background:#fff}
     #count{font-size:13px;color:var(--muted)}
+    .summary{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+    .summary .chip{cursor:pointer}
+    .summary .chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
     .grid{display:grid;grid-template-columns:1fr;gap:12px}
     .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:220px 1fr;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
     .thumb{width:100%;height:160px;object-fit:cover;border-radius:10px;background:#eceff4;cursor:zoom-in}
@@ -54,6 +57,7 @@
       <input id="search" type="text" placeholder="חיפוש בפרומפט / קטגוריה / סוג / קישורים" />
       <div id="count"></div>
     </div>
+    <div id="summary" class="summary"></div>
 
     <div id="list" class="grid">טוען...</div>
   </div>
@@ -104,25 +108,65 @@
       const list=document.getElementById('list');
       const count=document.getElementById('count');
       const search=document.getElementById('search');
+      const summary=document.getElementById('summary');
+      let activeCategory='הכל';
 
-      const items=rows.map(r=>({
-        img:r[idx.image_url]||'',
-        prompt:r[idx.prompt]||'',
-        post:r[idx.post_link]||'',
-        fb:r[idx.facebook_link]||'',
-        type:r[idx.type]||'',
-        category:r[idx.category_he]||'כללי',
-        desc:r[idx.description_he]||'יוצרים תמונה יצירתית כללית לפי הפרומפט.'
-      })).filter(x=>x.img && x.prompt);
+      function inferOutcome(prompt, category){
+        const p=(prompt||'').toLowerCase();
+        if(category==='גיבורי-על ודמויות') return 'מה שיופיע: דמות גיבור/דמות מרכזית עם מראה דרמטי ורקע קולנועי.';
+        if(category==='פנטזיה ואפיות') return 'מה שיופיע: סצנה פנטסטית עם אלמנטים אפיים, עומק ואווירה עשירה.';
+        if(category==='טבע ונופים') return 'מה שיופיע: נוף טבעי מודגש עם תאורה ואווירה קולנועית.';
+        if(category==='עירוני ואדריכלות') return 'מה שיופיע: סביבה עירונית/אדריכלית מפורטת עם קומפוזיציה ברורה.';
+        if(category==='מיתוג ושיווק') return 'מה שיופיע: ויזואל שיווקי/מיתוגי עם מיקוד במוצר או מסר.';
+        if(p.includes('close-up')||p.includes('portrait')) return 'מה שיופיע: פורטרט ממוקד עם דגש על פנים/דמות.';
+        if(p.includes('underwater')) return 'מה שיופיע: סצנה תת-ימית מפורטת עם צבעים ותנועה חזותית.';
+        return 'מה שיופיע: סצנה יצירתית לפי הפרומפט עם דגש על סגנון ותאורה.';
+      }
+
+      const items=rows.map(r=>{
+        const category = r[idx.category_he]||'כללי';
+        const prompt = r[idx.prompt]||'';
+        return {
+          img:r[idx.image_url]||'',
+          prompt,
+          post:r[idx.post_link]||'',
+          fb:r[idx.facebook_link]||'',
+          type:r[idx.type]||'',
+          category,
+          desc:r[idx.description_he]||inferOutcome(prompt, category),
+          outcome: inferOutcome(prompt, category)
+        };
+      }).filter(x=>x.img && x.prompt);
+
+      function renderSummary(){
+        const byCat={};
+        for(const it of items){ byCat[it.category]=(byCat[it.category]||0)+1; }
+        summary.innerHTML='';
+        const totalChip=document.createElement('span');
+        totalChip.className='chip'+(activeCategory==='הכל'?' active':'');
+        totalChip.textContent=`הכל (${items.length})`;
+        totalChip.onclick=()=>{activeCategory='הכל'; render(search.value);};
+        summary.appendChild(totalChip);
+        Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([cat,n])=>{
+          const el=document.createElement('span');
+          el.className='chip'+(activeCategory===cat?' active':'');
+          el.textContent=`${cat} (${n})`;
+          el.onclick=()=>{activeCategory=cat; render(search.value);};
+          summary.appendChild(el);
+        });
+      }
 
       function render(query=''){
         list.innerHTML='';
         const q=query.trim().toLowerCase();
-        const filtered=!q?items:items.filter(x => (
-          `${x.prompt} ${x.type} ${x.post} ${x.fb} ${x.category} ${x.desc}`.toLowerCase().includes(q)
+        let filtered=items;
+        if(activeCategory!=='הכל') filtered=filtered.filter(x=>x.category===activeCategory);
+        if(q) filtered=filtered.filter(x => (
+          `${x.prompt} ${x.type} ${x.post} ${x.fb} ${x.category} ${x.desc} ${x.outcome}`.toLowerCase().includes(q)
         ));
 
         count.textContent=`מציג ${filtered.length} מתוך ${items.length}`;
+        renderSummary();
 
         filtered.forEach(x=>{
           const el=document.createElement('div'); el.className='card';
@@ -139,7 +183,8 @@
                 <a href="${x.fb}" target="_blank">פייסבוק</a>
               </div>
               <div class="prompt">${x.prompt || '—'}</div>
-              <div class="desc">${x.desc}</div>
+              <div class="desc"><b>תיאור קצר:</b> ${x.desc}</div>
+              <div class="desc"><b>מה יופיע בתמונה:</b> ${x.outcome}</div>
               <div class="actions">
                 <button class="btn" data-copy-prompt>העתקת פרומפט</button>
                 <button class="btn" data-copy-image>העתקת כתובת תמונה</button>
