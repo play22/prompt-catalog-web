@@ -39,9 +39,13 @@
     #search{width:100%;border:1px solid #cbd5e1;border-radius:14px;padding:12px 14px;font-size:15px;background:#fff;outline:none}
     #search:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--ring)}
 
-    .viewToggle{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px}
+    .viewToggle{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px;flex-wrap:wrap}
     .viewToggle button{border:0;background:transparent;padding:8px 10px;border-radius:9px;cursor:pointer;color:#334155;font-size:13px}
     .viewToggle button.active{background:var(--primary-soft);color:#1f3bd7;font-weight:700}
+
+    .toolbar2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .toolbar2 .btn.active{background:var(--primary-soft);border-color:#bccbff;color:#1f3bd7;font-weight:700}
+    .toolbar2 select{border:1px solid #ced6e4;background:#fff;border-radius:12px;padding:8px 10px;font-size:13px}
 
     #count{font-size:13px;color:var(--muted);margin:10px 2px}
 
@@ -58,9 +62,6 @@
     .chip.active b{color:#fff}
 
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-    .detailPanel{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin:8px 0 14px;box-shadow:var(--shadow)}
-    .detailPanel.open{display:block}
-    .detailPanel .title{font-weight:700;margin-bottom:8px}
 
     .detailOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:10020}
     .detailOverlay.open{display:flex}
@@ -70,15 +71,15 @@
     .detailGrid{display:grid;grid-template-columns:320px 1fr;gap:12px}
     .detailGrid img{width:100%;border-radius:12px;object-fit:cover;max-height:70vh}
     @media (max-width:860px){.detailGrid{grid-template-columns:1fr}.detailGrid img{max-height:40vh}}
-    .card{
-      background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;
-      box-shadow:0 2px 5px rgba(15,23,42,.04);display:flex;flex-direction:column
-    }
 
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 2px 5px rgba(15,23,42,.04);display:flex;flex-direction:column}
     .visual{position:relative}
     .thumb{width:100%;aspect-ratio:4/3;object-fit:cover;background:#e8edf6;cursor:zoom-in;display:block}
     .badgeRow{position:absolute;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;max-width:88%}
     .badge{font-size:11px;padding:4px 7px;border-radius:999px;background:rgba(15,23,42,.74);color:#fff}
+    .starBtn{position:absolute;top:10px;left:10px;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.9);border-radius:999px;padding:4px 8px;cursor:pointer;font-size:16px;line-height:1}
+    .starBtn.active{background:#fff5c2;border-color:#ffdb6e}
+    .selectPick{position:absolute;top:46px;left:10px;background:rgba(255,255,255,.95);border:1px solid #d1d5db;border-radius:10px;padding:4px 8px;font-size:12px;display:flex;align-items:center;gap:6px}
 
     .body{padding:12px}
     .metaLinks{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
@@ -104,7 +105,6 @@
     .modal img{width:auto;height:auto;max-width:95vw;max-height:90vh;object-fit:contain;cursor:zoom-out}
     .modal .close{position:absolute;top:12px;left:12px;background:#fff;border:0;border-radius:999px;padding:8px 11px;cursor:pointer;font-weight:bold}
 
-    /* Compact mode */
     body.compact-view .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
     body.compact-view .thumb{aspect-ratio:1/1}
     body.compact-view .body{padding:10px}
@@ -139,13 +139,13 @@
       <a class="btn" href="./index.html">← כל הפרופילים</a>
       <a class="btn" href="./panha.html">לעמוד פרופיל שני</a>
       <a class="btn" href="./graphics.csv" target="_blank">CSV מקור</a>
-      <span class="chip">v3 גלריה</span>
+      <span class="chip">v4 טורבו פק</span>
       <button class="btn" id="exportHiddenBtn" type="button" style="display:none">ייצוא חסומים</button>
     </div>
 
     <div class="hero">
       <div class="headline">GraphicsSolutionTricks</div>
-      <div class="sub">גלריית פרומפטים פרימיום — חיפוש מהיר, סינון לפי קטגוריה ותצוגה נוחה לנייד</div>
+      <div class="sub">גלריית פרומפטים פרימיום — חיפוש מהיר, סינון מתקדם ותצוגה נוחה לנייד</div>
 
       <div class="controls">
         <input id="search" type="text" placeholder="חיפוש בפרומפט / קטגוריה / סוג / קישורים" />
@@ -154,6 +154,31 @@
           <button id="compactBtn" type="button">תצוגה קומפקטית</button>
           <button id="galleryBtn" type="button">גלריה מהירה</button>
         </div>
+      </div>
+
+      <div class="toolbar2">
+        <button class="btn" id="favOnlyBtn" type="button">⭐ מועדפים בלבד</button>
+        <select id="typeFilter" aria-label="סוג">
+          <option value="all">כל הסוגים</option>
+          <option value="image">תמונה</option>
+          <option value="video">וידאו</option>
+        </select>
+        <button class="btn" id="longPromptBtn" type="button">פרומפטים ארוכים (180+)</button>
+        <select id="fbFilter" aria-label="קישור פייסבוק">
+          <option value="all">עם/בלי פייסבוק</option>
+          <option value="with">עם פייסבוק</option>
+          <option value="without">בלי פייסבוק</option>
+        </select>
+        <select id="sortSelect" aria-label="מיון">
+          <option value="newest">מיון: חדש לישן</option>
+          <option value="oldest">מיון: ישן לחדש</option>
+          <option value="prompt_len_desc">אורך פרומפט: ארוך לקצר</option>
+          <option value="prompt_len_asc">אורך פרומפט: קצר לארוך</option>
+        </select>
+        <button class="btn" id="batchModeBtn" type="button">מצב בחירה</button>
+        <button class="btn" id="copySelectedBtn" type="button">העתקת נבחרים</button>
+        <button class="btn" id="clearSelectedBtn" type="button">ניקוי בחירה</button>
+        <button class="btn" id="exportCsvBtn" type="button">ייצוא CSV מסונן</button>
       </div>
 
       <div id="count"></div>
@@ -188,16 +213,18 @@
       return rows;
     }
 
-    const escapeHtml = (s='') => s
-      .replaceAll('&','&amp;')
-      .replaceAll('<','&lt;')
-      .replaceAll('>','&gt;')
-      .replaceAll('"','&quot;')
-      .replaceAll("'",'&#39;');
+    const escapeHtml = (s='') => s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
+    const csvCell = (v='') => {
+      const s=String(v??'');
+      if(/[",\n\r]/.test(s)) return '"'+s.replaceAll('"','""')+'"';
+      return s;
+    };
 
     const isAdmin = new URLSearchParams(location.search).get('admin')==='1';
     const LOCAL_HIDDEN_KEY='prompt_catalog_hidden_ids';
+    const FAVORITES_KEY='graphics_favorite_ids_v1';
     let localHiddenIds = new Set(JSON.parse(localStorage.getItem(LOCAL_HIDDEN_KEY)||'[]'));
+    let favoriteIds = new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY)||'[]'));
     let globalHiddenIds = new Set();
 
     function makeId(item){
@@ -205,6 +232,12 @@
       let h=0;
       for(let i=0;i<base.length;i++) h=((h<<5)-h)+base.charCodeAt(i), h|=0;
       return 'id_'+Math.abs(h);
+    }
+
+    function extractSortScore(x){
+      const source = `${x.post||''} ${x.fb||''} ${x.img||''}`;
+      const ids = [...source.matchAll(/\d{5,}/g)].map(m=>Number(m[0])).filter(n=>Number.isFinite(n));
+      return ids.length ? ids[ids.length-1] : 0;
     }
 
     async function loadGlobalHidden(){
@@ -248,12 +281,34 @@
       const compactBtn=document.getElementById('compactBtn');
       const galleryBtn=document.getElementById('galleryBtn');
       const exportHiddenBtn=document.getElementById('exportHiddenBtn');
+
+      const favOnlyBtn=document.getElementById('favOnlyBtn');
+      const typeFilter=document.getElementById('typeFilter');
+      const longPromptBtn=document.getElementById('longPromptBtn');
+      const fbFilter=document.getElementById('fbFilter');
+      const sortSelect=document.getElementById('sortSelect');
+      const batchModeBtn=document.getElementById('batchModeBtn');
+      const copySelectedBtn=document.getElementById('copySelectedBtn');
+      const clearSelectedBtn=document.getElementById('clearSelectedBtn');
+      const exportCsvBtn=document.getElementById('exportCsvBtn');
+
       if(isAdmin && exportHiddenBtn) exportHiddenBtn.style.display='inline-flex';
 
       let activeCategories=new Set(['הכל']);
       let viewMode='expanded';
       let selectedItem=null;
+      let filteredSnapshot=[];
+      let selectionMode=false;
+      const selectedIds = new Set();
       const expandedPrompts=new Set();
+
+      const filters={
+        favoritesOnly:false,
+        type:'all',
+        longOnly:false,
+        fb:'all',
+        sort:'newest'
+      };
 
       function inferOutcome(prompt, category){
         const p=(prompt||'').toLowerCase();
@@ -271,41 +326,66 @@
         const category = (r[idx.category_he]||'כללי').trim();
         const prompt = (r[idx.prompt]||'').trim();
         const img=(r[idx.image_url]||'').trim();
-        return {
-          id: '',
+        const type = ((r[idx.type]||'image').trim() || 'image').toLowerCase();
+        const post=(r[idx.post_link]||'').trim();
+        const fb=(r[idx.facebook_link]||'').trim();
+        const out={
+          id:'',
           img,
           prompt,
-          post:(r[idx.post_link]||'').trim(),
-          fb:(r[idx.facebook_link]||'').trim(),
-          type:(r[idx.type]||'').trim(),
+          post,
+          fb,
+          type,
           category,
           desc:(r[idx.description_he]||'').trim() || inferOutcome(prompt, category),
-          outcome: inferOutcome(prompt, category)
+          outcome: inferOutcome(prompt, category),
+          rowIndex:i
         };
+        return {...out, sortScore:extractSortScore(out), promptLen:prompt.length};
       }).filter(x=>x.img && x.prompt).map(x=>({ ...x, id: makeId(x)})).filter(x=>!globalHiddenIds.has(x.id) && !localHiddenIds.has(x.id));
+
+      function sortItems(arr){
+        const cp=[...arr];
+        if(filters.sort==='prompt_len_desc') cp.sort((a,b)=>b.promptLen-a.promptLen || b.sortScore-a.sortScore || a.rowIndex-b.rowIndex);
+        else if(filters.sort==='prompt_len_asc') cp.sort((a,b)=>a.promptLen-b.promptLen || b.sortScore-a.sortScore || a.rowIndex-b.rowIndex);
+        else if(filters.sort==='oldest') cp.sort((a,b)=>a.sortScore-b.sortScore || a.rowIndex-b.rowIndex);
+        else cp.sort((a,b)=>b.sortScore-a.sortScore || b.rowIndex-a.rowIndex);
+        return cp;
+      }
 
       function computeFiltered(query=''){
         const q=query.trim().toLowerCase();
         let filtered=items;
         const allSelected = activeCategories.has('הכל');
-        if(!allSelected){
-          filtered=filtered.filter(x=>activeCategories.has(x.category));
-        }
-        if(q) filtered=filtered.filter(x => (
-          `${x.prompt} ${x.type} ${x.post} ${x.fb} ${x.category} ${x.desc} ${x.outcome}`.toLowerCase().includes(q)
-        ));
-        return filtered;
+
+        if(!allSelected) filtered=filtered.filter(x=>activeCategories.has(x.category));
+        if(filters.favoritesOnly) filtered=filtered.filter(x=>favoriteIds.has(x.id));
+        if(filters.type!=='all') filtered=filtered.filter(x=>(x.type||'image')===filters.type);
+        if(filters.longOnly) filtered=filtered.filter(x=>(x.prompt||'').length>180);
+        if(filters.fb==='with') filtered=filtered.filter(x=>!!x.fb);
+        if(filters.fb==='without') filtered=filtered.filter(x=>!x.fb);
+
+        if(q) filtered=filtered.filter(x => (`${x.prompt} ${x.type} ${x.post} ${x.fb} ${x.category} ${x.desc} ${x.outcome}`.toLowerCase().includes(q)));
+
+        return sortItems(filtered);
       }
 
       function toggleCategory(cat){
-        if(cat==='הכל'){
-          activeCategories = new Set(['הכל']);
-          return;
-        }
+        if(cat==='הכל'){ activeCategories = new Set(['הכל']); return; }
         if(activeCategories.has('הכל')) activeCategories.delete('הכל');
         if(activeCategories.has(cat)) activeCategories.delete(cat);
         else activeCategories.add(cat);
         if(activeCategories.size===0) activeCategories = new Set(['הכל']);
+      }
+
+      function saveFavorites(){
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(favoriteIds)));
+      }
+
+      function updateToolbarState(){
+        favOnlyBtn.classList.toggle('active', filters.favoritesOnly);
+        longPromptBtn.classList.toggle('active', filters.longOnly);
+        batchModeBtn.classList.toggle('active', selectionMode);
       }
 
       function renderSummary(){
@@ -318,6 +398,13 @@
         total.innerHTML=`<button type="button">הכל <b>(${items.length})</b></button>`;
         total.onclick=()=>{ toggleCategory('הכל'); render(search.value); };
         summary.appendChild(total);
+
+        const favCount = items.filter(x=>favoriteIds.has(x.id)).length;
+        const favChip=document.createElement('span');
+        favChip.className='chip'+(filters.favoritesOnly?' active':'');
+        favChip.innerHTML=`<button type="button">⭐ מועדפים <b>(${favCount})</b></button>`;
+        favChip.onclick=()=>{ filters.favoritesOnly=!filters.favoritesOnly; render(search.value); };
+        summary.appendChild(favChip);
 
         Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([cat,n])=>{
           const el=document.createElement('span');
@@ -373,15 +460,52 @@
         if(mode!=='gallery') renderDetail(null);
       }
 
+      function exportFilteredCsv(){
+        const head=['id','category_he','type','prompt','description_he','image_url','post_link','facebook_link'];
+        const lines=[head.join(',')];
+        for(const x of filteredSnapshot){
+          lines.push([
+            x.id,x.category,x.type,x.prompt,x.desc,x.img,x.post,x.fb
+          ].map(csvCell).join(','));
+        }
+        const blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download='graphics_filtered.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+        showToast(`CSV יוצא (${filteredSnapshot.length} שורות)`);
+      }
+
+      function copySelected(){
+        const selected=items.filter(x=>selectedIds.has(x.id));
+        if(!selected.length){ showToast('לא נבחרו כרטיסים'); return; }
+        const payload=selected.map((x,i)=>[
+          `#${i+1}`,
+          `פרומפט: ${x.prompt}`,
+          `פוסט: ${x.fb||x.post||''}`,
+          `תמונה: ${x.img}`
+        ].join('\n')).join('\n\n');
+        copyText(payload,`נבחרים (${selected.length})`);
+      }
+
       function render(query=''){
         list.innerHTML='';
         const filtered=computeFiltered(query);
+        filteredSnapshot=filtered;
+
         const selectedLabel = activeCategories.has('הכל') ? 'כל הקטגוריות' : Array.from(activeCategories).join(', ');
-        count.textContent=`מציג ${filtered.length} מתוך ${items.length} · סינון: ${selectedLabel}`;
+        count.textContent=`מציג ${filtered.length} מתוך ${items.length} · סינון: ${selectedLabel} · מועדפים: ${favoriteIds.size} · נבחרו: ${selectedIds.size}`;
+
         renderSummary();
+        updateToolbarState();
 
         filtered.forEach(x=>{
           const isPromptOpen = expandedPrompts.has(x.id);
+          const isFav = favoriteIds.has(x.id);
+          const isSelected = selectedIds.has(x.id);
           const safeType=escapeHtml(x.type || 'image');
           const safeCat=escapeHtml(x.category || 'כללי');
           const safePrompt=escapeHtml(x.prompt || '—');
@@ -393,6 +517,8 @@
           el.innerHTML=`
             <div class="visual">
               <img class="thumb" src="${x.img}" loading="lazy" alt="תמונה מתוך הקטלוג" />
+              <button class="starBtn ${isFav?'active':''}" type="button" title="מועדפים">${isFav?'⭐':'☆'}</button>
+              ${selectionMode?`<label class="selectPick"><input type="checkbox" ${isSelected?'checked':''} />בחר</label>`:''}
               <div class="badgeRow">
                 <span class="badge">${safeType}</span>
                 <span class="badge">${safeCat}</span>
@@ -407,7 +533,7 @@
 
               <div class="promptWrap">
                 <div class="promptTop">
-                  <span class="promptTitle">פרומפט</span>
+                  <span class="promptTitle">פרומפט (${x.promptLen})</span>
                   <button type="button" class="showPrompt">${isPromptOpen ? 'הסתר פרומפט' : 'הצג פרומפט'}</button>
                 </div>
                 <div class="prompt ${isPromptOpen ? 'open' : ''}">${safePrompt}</div>
@@ -423,6 +549,20 @@
               </div>
             </div>`;
 
+          el.querySelector('.starBtn').addEventListener('click',()=>{
+            if(favoriteIds.has(x.id)) favoriteIds.delete(x.id); else favoriteIds.add(x.id);
+            saveFavorites();
+            render(search.value);
+          });
+
+          if(selectionMode){
+            const cb=el.querySelector('.selectPick input');
+            cb?.addEventListener('change',(e)=>{
+              if(e.target.checked) selectedIds.add(x.id); else selectedIds.delete(x.id);
+              count.textContent=`מציג ${filteredSnapshot.length} מתוך ${items.length} · סינון: ${selectedLabel} · מועדפים: ${favoriteIds.size} · נבחרו: ${selectedIds.size}`;
+            });
+          }
+
           el.querySelector('[data-copy-prompt]').addEventListener('click',()=>copyText(x.prompt,'פרומפט'));
           el.querySelector('[data-copy-image]').addEventListener('click',()=>copyText(x.img,'כתובת תמונה'));
 
@@ -435,10 +575,7 @@
           });
 
           el.querySelector('.thumb').addEventListener('click',()=>{
-            if(viewMode==='gallery'){
-              renderDetail(x);
-              return;
-            }
+            if(viewMode==='gallery') return renderDetail(x);
             modalImg.src=x.img;
             modal.classList.add('open');
             modal.setAttribute('aria-hidden','false');
@@ -461,6 +598,7 @@
           const still=filtered.find(i=>i.id===selectedItem.id);
           if(!still) renderDetail(null);
         }
+
         if(!filtered.length){ list.innerHTML='<div class="sub">אין תוצאות לחיפוש</div>'; renderDetail(null); }
       }
 
@@ -468,6 +606,17 @@
       expandedBtn.addEventListener('click', ()=>setViewMode('expanded'));
       compactBtn.addEventListener('click', ()=>setViewMode('compact'));
       galleryBtn.addEventListener('click', ()=>setViewMode('gallery'));
+
+      favOnlyBtn.addEventListener('click',()=>{ filters.favoritesOnly=!filters.favoritesOnly; render(search.value); });
+      typeFilter.addEventListener('change',()=>{ filters.type=typeFilter.value; render(search.value); });
+      longPromptBtn.addEventListener('click',()=>{ filters.longOnly=!filters.longOnly; render(search.value); });
+      fbFilter.addEventListener('change',()=>{ filters.fb=fbFilter.value; render(search.value); });
+      sortSelect.addEventListener('change',()=>{ filters.sort=sortSelect.value; render(search.value); });
+
+      batchModeBtn.addEventListener('click',()=>{ selectionMode=!selectionMode; if(!selectionMode) selectedIds.clear(); render(search.value); });
+      copySelectedBtn.addEventListener('click',copySelected);
+      clearSelectedBtn.addEventListener('click',()=>{ selectedIds.clear(); render(search.value); });
+      exportCsvBtn.addEventListener('click',exportFilteredCsv);
 
       if(exportHiddenBtn){
         exportHiddenBtn.addEventListener('click',()=>{
