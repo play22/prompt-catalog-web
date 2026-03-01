@@ -60,6 +60,15 @@
     .detailPanel{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin:8px 0 14px;box-shadow:var(--shadow)}
     .detailPanel.open{display:block}
     .detailPanel .title{font-weight:700;margin-bottom:8px}
+
+    .detailOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:10020}
+    .detailOverlay.open{display:flex}
+    .detailContent{width:min(980px,96vw);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+    .detailTop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+    .detailClose{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:6px 10px;cursor:pointer}
+    .detailGrid{display:grid;grid-template-columns:320px 1fr;gap:12px}
+    .detailGrid img{width:100%;border-radius:12px;object-fit:cover;max-height:70vh}
+    @media (max-width:860px){.detailGrid{grid-template-columns:1fr}.detailGrid img{max-height:40vh}}
     .card{
       background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;
       box-shadow:0 2px 5px rgba(15,23,42,.04);display:flex;flex-direction:column
@@ -148,8 +157,11 @@
       <div id="summary" class="summary"></div>
     </div>
 
-    <div id="detailPanel" class="detailPanel"></div>
     <div id="list" class="grid">טוען...</div>
+  </div>
+
+  <div id="detailOverlay" class="detailOverlay" aria-hidden="true">
+    <div class="detailContent" id="detailContent"></div>
   </div>
 
   <div id="toast" class="toast">הועתק</div>
@@ -207,7 +219,6 @@
       const count=document.getElementById('count');
       const search=document.getElementById('search');
       const summary=document.getElementById('summary');
-      const detailPanel=document.getElementById('detailPanel');
       const expandedBtn=document.getElementById('expandedBtn');
       const compactBtn=document.getElementById('compactBtn');
       const galleryBtn=document.getElementById('galleryBtn');
@@ -276,17 +287,39 @@
         });
       }
 
+      const detailOverlay = document.getElementById('detailOverlay');
+      const detailContent = document.getElementById('detailContent');
+      detailOverlay?.addEventListener('click', (e)=>{ if(e.target===detailOverlay) renderDetail(null); });
+
       function renderDetail(item){
-        if(!item){ detailPanel.classList.remove('open'); detailPanel.innerHTML=''; return; }
+        if(!item){
+          selectedItem=null;
+          detailOverlay.classList.remove('open');
+          detailOverlay.setAttribute('aria-hidden','true');
+          detailContent.innerHTML='';
+          return;
+        }
         selectedItem=item;
-        detailPanel.classList.add('open');
-        detailPanel.innerHTML = `<div class="title">פרטים על התמונה שנבחרה</div>
-          <div class="meta"><span class="chip">סוג: ${escapeHtml(item.type||'image')}</span><span class="chip">קטגוריה: ${escapeHtml(item.category||'כללי')}</span></div>
-          <div class="prompt" style="display:block;margin-top:8px">${escapeHtml(item.prompt||'—')}</div>
-          <div class="desc"><b>מה יופיע בתמונה:</b> ${escapeHtml(item.outcome||'—')}</div>
-          <div class="actions"><button class="btn ghost" id="dpCopyPrompt">העתקת פרומפט</button><button class="btn ghost" id="dpCopyImage">העתקת כתובת תמונה</button><a class="btn primary" href="${item.fb||item.post||item.img}" target="_blank">פתיחת כתובת פוסט</a></div>`;
+        detailOverlay.classList.add('open');
+        detailOverlay.setAttribute('aria-hidden','false');
+        detailContent.innerHTML = `
+          <div class="detailTop">
+            <div class="title">פרטים על התמונה שנבחרה</div>
+            <button class="detailClose" id="detailCloseBtn">סגירה ✕</button>
+          </div>
+          <div class="detailGrid">
+            <img src="${item.img}" alt="preview" />
+            <div>
+              <div class="meta"><span class="chip">סוג: ${escapeHtml(item.type||'image')}</span><span class="chip">קטגוריה: ${escapeHtml(item.category||'כללי')}</span></div>
+              <div class="prompt" style="display:block;margin-top:8px">${escapeHtml(item.prompt||'—')}</div>
+              <div class="desc"><b>תיאור קצר:</b> ${escapeHtml(item.desc||'—')}</div>
+              <div class="desc"><b>מה יופיע בתמונה:</b> ${escapeHtml(item.outcome||'—')}</div>
+              <div class="actions"><button class="btn ghost" id="dpCopyPrompt">העתקת פרומפט</button><button class="btn ghost" id="dpCopyImage">העתקת כתובת תמונה</button><a class="btn primary" href="${item.fb||item.post||item.img}" target="_blank">פתיחת כתובת פוסט</a></div>
+            </div>
+          </div>`;
         document.getElementById('dpCopyPrompt')?.addEventListener('click',()=>copyText(item.prompt,'פרומפט'));
         document.getElementById('dpCopyImage')?.addEventListener('click',()=>copyText(item.img,'כתובת תמונה'));
+        document.getElementById('detailCloseBtn')?.addEventListener('click',()=>renderDetail(null));
       }
 
       function setViewMode(mode){
@@ -362,7 +395,6 @@
           el.querySelector('.thumb').addEventListener('click',()=>{
             if(viewMode==='gallery'){
               renderDetail(x);
-              window.scrollTo({top:detailPanel.offsetTop-10, behavior:'smooth'});
               return;
             }
             modalImg.src=x.img;
