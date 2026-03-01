@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GraphicsSolutionTricks - Prompt Catalog</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f7f7fb;color:#111}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .btn{border:1px solid #d1d5db;background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;text-decoration:none;color:#111}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:180px 1fr;gap:12px}
+    img{width:100%;height:120px;object-fit:cover;border-radius:8px;background:#eee;cursor:zoom-in}
+    .meta{font-size:13px;color:#444}
+    .prompt{white-space:pre-wrap;font-size:14px;line-height:1.45;margin-top:8px}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;opacity:0;transition:.2s;z-index:10001}
+    .toast.show{opacity:1}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:16px;z-index:10000}
+    .modal.open{display:flex}
+    .modal img{width:auto;height:auto;max-width:95vw;max-height:90vh;object-fit:contain;cursor:zoom-out}
+    .modal .close{position:absolute;top:12px;left:12px;background:#fff;border:0;border-radius:999px;padding:8px 10px;cursor:pointer;font-weight:bold}
+    @media (max-width:700px){.card{grid-template-columns:1fr} img{height:180px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="btn" href="./index.html">← כל הפרופילים</a>
+      <a class="btn" href="./panha.html">לעמוד פרופיל שני</a>
+      <h2 style="margin:0">GraphicsSolutionTricks</h2>
+    </div>
+    <input id="search" type="text" placeholder="חיפוש בפרומפט / סוג / קישור..." style="width:100%;max-width:480px;border:1px solid #d1d5db;border-radius:10px;padding:10px;margin:10px 0 14px" />
+    <div id="count" class="meta" style="margin-bottom:8px"></div>
+    <div id="list">טוען...</div>
+  </div>
+  <div id="toast" class="toast">הועתק</div>
+  <div id="imgModal" class="modal" aria-hidden="true"><button class="close" id="closeModal">✕</button><img id="modalImg" src="" alt="preview" /></div>
+  <script>
+    function parseCSV(text){const rows=[];let i=0,cur='',row=[],q=false;while(i<text.length){const c=text[i];if(c==='"'){if(q&&text[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(c===','&&!q){row.push(cur);cur='';}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cur);if(row.some(x=>x!==''))rows.push(row);row=[];cur='';}else cur+=c;i++;}if(cur.length||row.length){row.push(cur);rows.push(row);}return rows;}
+    function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1200)}
+    async function copyText(text,label){try{await navigator.clipboard.writeText(text);showToast(`הועתק: ${label}`)}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast(`הועתק: ${label}`)}}
+    const modal=document.getElementById('imgModal'), modalImg=document.getElementById('modalImg');
+    const closeModal=()=>{modal.classList.remove('open');modal.setAttribute('aria-hidden','true');modalImg.src='';};
+    document.getElementById('closeModal').addEventListener('click',closeModal); modal.addEventListener('click',e=>{if(e.target===modal||e.target===modalImg)closeModal();}); document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+    fetch('./graphics.csv').then(r=>r.text()).then(t=>{
+      const rows=parseCSV(t); const head=rows.shift()||[]; const idx=Object.fromEntries(head.map((h,i)=>[h.trim(),i]));
+      const list=document.getElementById('list'), count=document.getElementById('count'), search=document.getElementById('search');
+      const items=rows.map(r=>({img:r[idx.image_url]||'',prompt:r[idx.prompt]||'',post:r[idx.post_link]||'',fb:r[idx.facebook_link]||'',type:r[idx.type]||''}));
+      function render(q=''){list.innerHTML='';const f=q.trim().toLowerCase();const filtered=!f?items:items.filter(x=>(x.prompt+' '+x.type+' '+x.post+' '+x.fb).toLowerCase().includes(f));count.textContent=`מציג ${filtered.length} מתוך ${items.length}`;filtered.forEach(x=>{const el=document.createElement('div');el.className='card';el.innerHTML=`<div><img src="${x.img}" loading="lazy" /></div><div><div class="meta">סוג: <b>${x.type}</b> · <a href="${x.post}" target="_blank">טלגרם</a> · <a href="${x.fb}" target="_blank">פייסבוק</a></div><div class="prompt">${x.prompt||'—'}</div><div class="actions"><button class="btn" data-copy-prompt>העתקת פרומפט</button><button class="btn" data-copy-image>העתקת כתובת תמונה</button><a class="btn" href="${x.fb||x.post}" target="_blank">פתיחת כתובת פוסט</a></div></div>`;el.querySelector('[data-copy-prompt]').addEventListener('click',()=>copyText(x.prompt,'פרומפט'));el.querySelector('[data-copy-image]').addEventListener('click',()=>copyText(x.img,'כתובת תמונה'));el.querySelector('img').addEventListener('click',()=>{if(!x.img)return;modalImg.src=x.img;modal.classList.add('open');modal.setAttribute('aria-hidden','false')});list.appendChild(el)});if(!filtered.length)list.innerHTML='<div class="meta">אין תוצאות</div>'}
+      search.addEventListener('input',e=>render(e.target.value));render('');
+    }).catch(()=>document.getElementById('list').textContent='שגיאה בטעינת הנתונים');
+  </script>
+</body>
+</html>
