@@ -57,6 +57,9 @@
     .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .detailPanel{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin:8px 0 14px;box-shadow:var(--shadow)}
+    .detailPanel.open{display:block}
+    .detailPanel .title{font-weight:700;margin-bottom:8px}
     .card{
       background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;
       box-shadow:0 2px 5px rgba(15,23,42,.04);display:flex;flex-direction:column
@@ -98,6 +101,11 @@
     body.compact-view .actions{grid-template-columns:1fr;gap:6px}
     body.compact-view .metaLinks{font-size:12px}
 
+    body.gallery-view .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    body.gallery-view .card{padding:0;border-radius:12px;overflow:hidden}
+    body.gallery-view .body{display:none}
+    body.gallery-view .thumb{aspect-ratio:1/1}
+
     @media (max-width:860px){
       .controls{grid-template-columns:1fr}
       .viewToggle{justify-self:start}
@@ -132,6 +140,7 @@
         <div class="viewToggle" role="tablist" aria-label="מצב תצוגה">
           <button id="expandedBtn" class="active" type="button">תצוגה מלאה</button>
           <button id="compactBtn" type="button">תצוגה קומפקטית</button>
+          <button id="galleryBtn" type="button">גלריה מהירה</button>
         </div>
       </div>
 
@@ -139,6 +148,7 @@
       <div id="summary" class="summary"></div>
     </div>
 
+    <div id="detailPanel" class="detailPanel"></div>
     <div id="list" class="grid">טוען...</div>
   </div>
 
@@ -197,11 +207,14 @@
       const count=document.getElementById('count');
       const search=document.getElementById('search');
       const summary=document.getElementById('summary');
+      const detailPanel=document.getElementById('detailPanel');
       const expandedBtn=document.getElementById('expandedBtn');
       const compactBtn=document.getElementById('compactBtn');
+      const galleryBtn=document.getElementById('galleryBtn');
 
       let activeCategory='הכל';
       let viewMode='expanded';
+      let selectedItem=null;
       const expandedPrompts=new Set();
 
       function inferOutcome(prompt, category){
@@ -263,11 +276,27 @@
         });
       }
 
+      function renderDetail(item){
+        if(!item){ detailPanel.classList.remove('open'); detailPanel.innerHTML=''; return; }
+        selectedItem=item;
+        detailPanel.classList.add('open');
+        detailPanel.innerHTML = `<div class="title">פרטים על התמונה שנבחרה</div>
+          <div class="meta"><span class="chip">סוג: ${escapeHtml(item.type||'image')}</span><span class="chip">קטגוריה: ${escapeHtml(item.category||'כללי')}</span></div>
+          <div class="prompt" style="display:block;margin-top:8px">${escapeHtml(item.prompt||'—')}</div>
+          <div class="desc"><b>מה יופיע בתמונה:</b> ${escapeHtml(item.outcome||'—')}</div>
+          <div class="actions"><button class="btn ghost" id="dpCopyPrompt">העתקת פרומפט</button><button class="btn ghost" id="dpCopyImage">העתקת כתובת תמונה</button><a class="btn primary" href="${item.fb||item.post||item.img}" target="_blank">פתיחת כתובת פוסט</a></div>`;
+        document.getElementById('dpCopyPrompt')?.addEventListener('click',()=>copyText(item.prompt,'פרומפט'));
+        document.getElementById('dpCopyImage')?.addEventListener('click',()=>copyText(item.img,'כתובת תמונה'));
+      }
+
       function setViewMode(mode){
         viewMode=mode;
         document.body.classList.toggle('compact-view', mode==='compact');
+        document.body.classList.toggle('gallery-view', mode==='gallery');
         expandedBtn.classList.toggle('active', mode==='expanded');
         compactBtn.classList.toggle('active', mode==='compact');
+        galleryBtn.classList.toggle('active', mode==='gallery');
+        if(mode!=='gallery') renderDetail(null);
       }
 
       function render(query=''){
@@ -331,6 +360,11 @@
           });
 
           el.querySelector('.thumb').addEventListener('click',()=>{
+            if(viewMode==='gallery'){
+              renderDetail(x);
+              window.scrollTo({top:detailPanel.offsetTop-10, behavior:'smooth'});
+              return;
+            }
             modalImg.src=x.img;
             modal.classList.add('open');
             modal.setAttribute('aria-hidden','false');
@@ -339,12 +373,17 @@
           list.appendChild(el);
         });
 
-        if(!filtered.length){ list.innerHTML='<div class="sub">אין תוצאות לחיפוש</div>'; }
+        if(viewMode==='gallery' && selectedItem){
+          const still=filtered.find(i=>i.id===selectedItem.id);
+          if(!still) renderDetail(null);
+        }
+        if(!filtered.length){ list.innerHTML='<div class="sub">אין תוצאות לחיפוש</div>'; renderDetail(null); }
       }
 
       search.addEventListener('input',e=>render(e.target.value));
       expandedBtn.addEventListener('click', ()=>setViewMode('expanded'));
       compactBtn.addEventListener('click', ()=>setViewMode('compact'));
+      galleryBtn.addEventListener('click', ()=>setViewMode('gallery'));
 
       setViewMode('expanded');
       render('');
