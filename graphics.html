@@ -5,39 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GraphicsSolutionTricks - Prompt Catalog</title>
   <style>
-    :root{--bg:#f3f5fb;--card:#fff;--line:#e5e7eb;--text:#111827;--muted:#6b7280;--primary:#2563eb}
+    :root{
+      --bg:#f2f4fb;
+      --card:#ffffff;
+      --line:#dce3ef;
+      --text:#0f172a;
+      --muted:#586174;
+      --primary:#3b57f4;
+      --primary-soft:#eef1ff;
+      --ring:rgba(59,87,244,.2);
+      --shadow:0 10px 30px rgba(15,23,42,.08);
+    }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{max-width:1160px;margin:0 auto;padding:16px}
-    .topbar{position:sticky;top:0;z-index:20;background:#ffffffd9;backdrop-filter:blur(4px);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .btn{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer;text-decoration:none;color:#111;display:inline-flex;align-items:center;gap:6px}
+    body{margin:0;font-family:Arial,sans-serif;background:radial-gradient(1200px 500px at 50% -150px,#dfe7ff,transparent),var(--bg);color:var(--text)}
+    .wrap{max-width:1240px;margin:0 auto;padding:14px}
+
+    .topbar{
+      position:sticky;top:10px;z-index:50;background:rgba(255,255,255,.86);
+      backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:18px;padding:10px;
+      display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow)
+    }
+
+    .btn{border:1px solid #ced6e4;background:#fff;border-radius:12px;padding:8px 12px;font-size:13px;cursor:pointer;text-decoration:none;color:var(--text);display:inline-flex;align-items:center;gap:6px}
+    .btn:hover{border-color:#b7c2d8}
     .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
-    .headline{font-size:22px;font-weight:700;margin:8px 0 0}
-    .sub{font-size:13px;color:var(--muted);margin-top:2px}
-    .searchRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0}
-    #search{width:min(560px,100%);border:1px solid #cfd4dc;border-radius:12px;padding:11px 12px;font-size:14px;background:#fff}
-    #count{font-size:13px;color:var(--muted)}
-    .summary{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
-    .summary .chip{cursor:pointer}
-    .summary .chip.active{background:#2563eb;color:#fff;border-color:#2563eb}
-    .grid{display:grid;grid-template-columns:1fr;gap:12px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;grid-template-columns:220px 1fr;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-    .thumb{width:100%;height:160px;object-fit:cover;border-radius:10px;background:#eceff4;cursor:zoom-in}
-    .meta{font-size:13px;color:#374151;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .chip{display:inline-flex;align-items:center;border:1px solid #dbe1ea;background:#f8fafc;border-radius:999px;padding:4px 8px;font-size:12px;color:#334155}
-    .prompt{margin-top:8px;line-height:1.5;font-size:14px;white-space:pre-wrap}
-    .desc{margin-top:8px;font-size:13px;color:#374151;background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:8px}
-    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;opacity:0;transition:.2s;z-index:10001}
+    .btn.ghost{background:#f8faff}
+
+    .hero{padding:14px 4px 8px}
+    .headline{font-size:30px;font-weight:800;margin:6px 0 0;letter-spacing:-.3px}
+    .sub{font-size:14px;color:var(--muted);margin-top:6px}
+
+    .controls{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-top:12px}
+    #search{width:100%;border:1px solid #cbd5e1;border-radius:14px;padding:12px 14px;font-size:15px;background:#fff;outline:none}
+    #search:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--ring)}
+
+    .viewToggle{display:flex;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px}
+    .viewToggle button{border:0;background:transparent;padding:8px 10px;border-radius:9px;cursor:pointer;color:#334155;font-size:13px}
+    .viewToggle button.active{background:var(--primary-soft);color:#1f3bd7;font-weight:700}
+
+    #count{font-size:13px;color:var(--muted);margin:10px 2px}
+
+    .summary{display:flex;gap:8px;overflow:auto;padding-bottom:6px;margin:4px 0 10px}
+    .summary::-webkit-scrollbar{height:8px}
+    .summary::-webkit-scrollbar-thumb{background:#d4d9e3;border-radius:30px}
+    .chip{
+      display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+      border:1px solid #dbe3f0;background:#f9fbff;border-radius:999px;
+      padding:7px 11px;font-size:12px;color:#334155
+    }
+    .chip button{all:unset;cursor:pointer}
+    .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+    .card{
+      background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+      box-shadow:0 2px 5px rgba(15,23,42,.04);display:flex;flex-direction:column
+    }
+
+    .visual{position:relative}
+    .thumb{width:100%;aspect-ratio:4/3;object-fit:cover;background:#e8edf6;cursor:zoom-in;display:block}
+    .badgeRow{position:absolute;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;max-width:88%}
+    .badge{font-size:11px;padding:4px 7px;border-radius:999px;background:rgba(15,23,42,.74);color:#fff}
+
+    .body{padding:12px}
+    .metaLinks{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+    .metaLinks a{color:#1e40af;text-decoration:none}
+
+    .promptWrap{margin-top:10px;border:1px solid #e3e8f2;background:#fbfcff;border-radius:12px;padding:10px}
+    .promptTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .promptTitle{font-size:12px;color:#64748b;font-weight:700}
+    .showPrompt{border:0;background:transparent;color:#1d4ed8;cursor:pointer;font-size:12px;padding:0}
+    .prompt{margin-top:8px;line-height:1.5;font-size:14px;white-space:pre-wrap;display:none}
+    .prompt.open{display:block}
+
+    .desc{margin-top:9px;font-size:13px;color:#334155;background:#f8fafc;border:1px solid #e7ebf3;border-radius:11px;padding:8px}
+
+    .actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+    .actions .btn{justify-content:center;padding:9px 8px}
+
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:9px 13px;border-radius:9px;font-size:13px;opacity:0;transition:.2s;z-index:10001}
     .toast.show{opacity:1}
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:16px;z-index:10000}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:16px;z-index:10000}
     .modal.open{display:flex}
     .modal img{width:auto;height:auto;max-width:95vw;max-height:90vh;object-fit:contain;cursor:zoom-out}
-    .modal .close{position:absolute;top:12px;left:12px;background:#fff;border:0;border-radius:999px;padding:8px 10px;cursor:pointer;font-weight:bold}
-    @media (max-width:760px){
-      .card{grid-template-columns:1fr}
-      .thumb{height:190px}
-      .headline{font-size:20px}
+    .modal .close{position:absolute;top:12px;left:12px;background:#fff;border:0;border-radius:999px;padding:8px 11px;cursor:pointer;font-weight:bold}
+
+    /* Compact mode */
+    body.compact-view .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    body.compact-view .thumb{aspect-ratio:1/1}
+    body.compact-view .body{padding:10px}
+    body.compact-view .desc{display:none}
+    body.compact-view .actions{grid-template-columns:1fr;gap:6px}
+    body.compact-view .metaLinks{font-size:12px}
+
+    @media (max-width:860px){
+      .controls{grid-template-columns:1fr}
+      .viewToggle{justify-self:start}
+      .headline{font-size:26px}
+      .actions{grid-template-columns:1fr}
+      .thumb{aspect-ratio:16/11}
+      body.compact-view .thumb{aspect-ratio:4/3}
+    }
+    @media (max-width:480px){
+      .wrap{padding:10px}
+      .topbar{top:6px;border-radius:14px}
+      .headline{font-size:24px}
+      .hero{padding-top:10px}
     }
   </style>
 </head>
@@ -47,17 +120,24 @@
       <a class="btn" href="./index.html">← כל הפרופילים</a>
       <a class="btn" href="./panha.html">לעמוד פרופיל שני</a>
       <a class="btn" href="./graphics.csv" target="_blank">CSV מקור</a>
-      <span class="chip">v2 UI</span>
+      <span class="chip">v3 גלריה</span>
     </div>
 
-    <div class="headline">GraphicsSolutionTricks</div>
-    <div class="sub">קטלוג פרומפטים עם קטגוריה ותיאור בעברית</div>
+    <div class="hero">
+      <div class="headline">GraphicsSolutionTricks</div>
+      <div class="sub">גלריית פרומפטים פרימיום — חיפוש מהיר, סינון לפי קטגוריה ותצוגה נוחה לנייד</div>
 
-    <div class="searchRow">
-      <input id="search" type="text" placeholder="חיפוש בפרומפט / קטגוריה / סוג / קישורים" />
+      <div class="controls">
+        <input id="search" type="text" placeholder="חיפוש בפרומפט / קטגוריה / סוג / קישורים" />
+        <div class="viewToggle" role="tablist" aria-label="מצב תצוגה">
+          <button id="expandedBtn" class="active" type="button">תצוגה מלאה</button>
+          <button id="compactBtn" type="button">תצוגה קומפקטית</button>
+        </div>
+      </div>
+
       <div id="count"></div>
+      <div id="summary" class="summary"></div>
     </div>
-    <div id="summary" class="summary"></div>
 
     <div id="list" class="grid">טוען...</div>
   </div>
@@ -83,6 +163,13 @@
       return rows;
     }
 
+    const escapeHtml = (s='') => s
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#39;');
+
     function showToast(msg){
       const t=document.getElementById('toast');
       t.textContent=msg; t.classList.add('show');
@@ -105,11 +192,17 @@
     fetch('./graphics.csv').then(r=>r.text()).then(t=>{
       const rows=parseCSV(t); const head=rows.shift()||[];
       const idx=Object.fromEntries(head.map((h,i)=>[(h||'').trim(),i]));
+
       const list=document.getElementById('list');
       const count=document.getElementById('count');
       const search=document.getElementById('search');
       const summary=document.getElementById('summary');
+      const expandedBtn=document.getElementById('expandedBtn');
+      const compactBtn=document.getElementById('compactBtn');
+
       let activeCategory='הכל';
+      let viewMode='expanded';
+      const expandedPrompts=new Set();
 
       function inferOutcome(prompt, category){
         const p=(prompt||'').toLowerCase();
@@ -123,78 +216,126 @@
         return 'מה שיופיע: סצנה יצירתית לפי הפרומפט עם דגש על סגנון ותאורה.';
       }
 
-      const items=rows.map(r=>{
-        const category = r[idx.category_he]||'כללי';
-        const prompt = r[idx.prompt]||'';
+      const items=rows.map((r, i)=>{
+        const category = (r[idx.category_he]||'כללי').trim();
+        const prompt = (r[idx.prompt]||'').trim();
+        const img=(r[idx.image_url]||'').trim();
         return {
-          img:r[idx.image_url]||'',
+          id: `${i}-${img.slice(-24)}`,
+          img,
           prompt,
-          post:r[idx.post_link]||'',
-          fb:r[idx.facebook_link]||'',
-          type:r[idx.type]||'',
+          post:(r[idx.post_link]||'').trim(),
+          fb:(r[idx.facebook_link]||'').trim(),
+          type:(r[idx.type]||'').trim(),
           category,
-          desc:r[idx.description_he]||inferOutcome(prompt, category),
+          desc:(r[idx.description_he]||'').trim() || inferOutcome(prompt, category),
           outcome: inferOutcome(prompt, category)
         };
       }).filter(x=>x.img && x.prompt);
 
-      function renderSummary(){
-        const byCat={};
-        for(const it of items){ byCat[it.category]=(byCat[it.category]||0)+1; }
-        summary.innerHTML='';
-        const totalChip=document.createElement('span');
-        totalChip.className='chip'+(activeCategory==='הכל'?' active':'');
-        totalChip.textContent=`הכל (${items.length})`;
-        totalChip.onclick=()=>{activeCategory='הכל'; render(search.value);};
-        summary.appendChild(totalChip);
-        Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([cat,n])=>{
-          const el=document.createElement('span');
-          el.className='chip'+(activeCategory===cat?' active':'');
-          el.textContent=`${cat} (${n})`;
-          el.onclick=()=>{activeCategory=cat; render(search.value);};
-          summary.appendChild(el);
-        });
-      }
-
-      function render(query=''){
-        list.innerHTML='';
+      function computeFiltered(query=''){
         const q=query.trim().toLowerCase();
         let filtered=items;
         if(activeCategory!=='הכל') filtered=filtered.filter(x=>x.category===activeCategory);
         if(q) filtered=filtered.filter(x => (
           `${x.prompt} ${x.type} ${x.post} ${x.fb} ${x.category} ${x.desc} ${x.outcome}`.toLowerCase().includes(q)
         ));
+        return filtered;
+      }
 
+      function renderSummary(filtered){
+        const byCat={};
+        for(const it of filtered){ byCat[it.category]=(byCat[it.category]||0)+1; }
+        summary.innerHTML='';
+
+        const total=document.createElement('span');
+        total.className='chip'+(activeCategory==='הכל'?' active':'');
+        total.innerHTML=`<button type="button">הכל <b>(${filtered.length})</b></button>`;
+        total.onclick=()=>{ activeCategory='הכל'; render(search.value); };
+        summary.appendChild(total);
+
+        Object.entries(byCat).sort((a,b)=>b[1]-a[1]).forEach(([cat,n])=>{
+          const el=document.createElement('span');
+          el.className='chip'+(activeCategory===cat?' active':'');
+          el.innerHTML=`<button type="button">${escapeHtml(cat)} <b>(${n})</b></button>`;
+          el.onclick=()=>{ activeCategory=cat; render(search.value); };
+          summary.appendChild(el);
+        });
+      }
+
+      function setViewMode(mode){
+        viewMode=mode;
+        document.body.classList.toggle('compact-view', mode==='compact');
+        expandedBtn.classList.toggle('active', mode==='expanded');
+        compactBtn.classList.toggle('active', mode==='compact');
+      }
+
+      function render(query=''){
+        list.innerHTML='';
+        const filtered=computeFiltered(query);
         count.textContent=`מציג ${filtered.length} מתוך ${items.length}`;
-        renderSummary();
+        renderSummary(computeFiltered(search.value));
 
         filtered.forEach(x=>{
-          const el=document.createElement('div'); el.className='card';
+          const isPromptOpen = expandedPrompts.has(x.id);
+          const safeType=escapeHtml(x.type || 'image');
+          const safeCat=escapeHtml(x.category || 'כללי');
+          const safePrompt=escapeHtml(x.prompt || '—');
+          const safeDesc=escapeHtml(x.desc || '—');
+          const safeOutcome=escapeHtml(x.outcome || '—');
+
+          const el=document.createElement('article');
+          el.className='card';
           el.innerHTML=`
-            <div>
-              <img class="thumb" src="${x.img}" loading="lazy" />
-            </div>
-            <div>
-              <div class="meta">
-                <span class="chip">סוג: ${x.type || 'image'}</span>
-                <span class="chip">קטגוריה: ${x.category}</span>
-                <a href="${x.post}" target="_blank">טלגרם</a>
-                <span>·</span>
-                <a href="${x.fb}" target="_blank">פייסבוק</a>
+            <div class="visual">
+              <img class="thumb" src="${x.img}" loading="lazy" alt="תמונה מתוך הקטלוג" />
+              <div class="badgeRow">
+                <span class="badge">${safeType}</span>
+                <span class="badge">${safeCat}</span>
               </div>
-              <div class="prompt">${x.prompt || '—'}</div>
-              <div class="desc"><b>תיאור קצר:</b> ${x.desc}</div>
-              <div class="desc"><b>מה יופיע בתמונה:</b> ${x.outcome}</div>
+            </div>
+
+            <div class="body">
+              <div class="metaLinks">
+                ${x.post ? `<a href="${x.post}" target="_blank">טלגרם</a>` : ''}
+                ${x.fb ? `<a href="${x.fb}" target="_blank">פייסבוק</a>` : ''}
+              </div>
+
+              <div class="promptWrap">
+                <div class="promptTop">
+                  <span class="promptTitle">פרומפט</span>
+                  <button type="button" class="showPrompt">${isPromptOpen ? 'הסתר פרומפט' : 'הצג פרומפט'}</button>
+                </div>
+                <div class="prompt ${isPromptOpen ? 'open' : ''}">${safePrompt}</div>
+              </div>
+
+              <div class="desc"><b>תיאור קצר:</b> ${safeDesc}</div>
+              <div class="desc"><b>מה יופיע בתמונה:</b> ${safeOutcome}</div>
+
               <div class="actions">
-                <button class="btn" data-copy-prompt>העתקת פרומפט</button>
-                <button class="btn" data-copy-image>העתקת כתובת תמונה</button>
-                <a class="btn primary" href="${x.fb || x.post}" target="_blank">פתיחת כתובת פוסט</a>
+                <button class="btn ghost" data-copy-prompt>העתקת פרומפט</button>
+                <button class="btn ghost" data-copy-image>העתקת כתובת תמונה</button>
+                <a class="btn primary" href="${x.fb || x.post || x.img}" target="_blank">פתיחת כתובת פוסט</a>
               </div>
             </div>`;
 
           el.querySelector('[data-copy-prompt]').addEventListener('click',()=>copyText(x.prompt,'פרומפט'));
           el.querySelector('[data-copy-image]').addEventListener('click',()=>copyText(x.img,'כתובת תמונה'));
-          el.querySelector('.thumb').addEventListener('click',()=>{ modalImg.src=x.img; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); });
+
+          const promptBtn = el.querySelector('.showPrompt');
+          const promptBlock = el.querySelector('.prompt');
+          promptBtn.addEventListener('click', ()=>{
+            const open = promptBlock.classList.toggle('open');
+            if(open) expandedPrompts.add(x.id); else expandedPrompts.delete(x.id);
+            promptBtn.textContent = open ? 'הסתר פרומפט' : 'הצג פרומפט';
+          });
+
+          el.querySelector('.thumb').addEventListener('click',()=>{
+            modalImg.src=x.img;
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden','false');
+          });
+
           list.appendChild(el);
         });
 
@@ -202,6 +343,10 @@
       }
 
       search.addEventListener('input',e=>render(e.target.value));
+      expandedBtn.addEventListener('click', ()=>setViewMode('expanded'));
+      compactBtn.addEventListener('click', ()=>setViewMode('compact'));
+
+      setViewMode('expanded');
       render('');
     }).catch(()=>document.getElementById('list').textContent='שגיאה בטעינת הנתונים');
   </script>
