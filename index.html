@@ -9,15 +9,19 @@
     .wrap{max-width:1100px;margin:0 auto;padding:16px}
     h1{font-size:22px}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-bottom:12px;display:grid;grid-template-columns:180px 1fr;gap:12px}
-    img{width:100%;height:120px;object-fit:cover;border-radius:8px;background:#eee}
+    img{width:100%;height:120px;object-fit:cover;border-radius:8px;background:#eee;cursor:zoom-in}
     .meta{font-size:13px;color:#444}
     .prompt{white-space:pre-wrap;font-size:14px;line-height:1.45;margin-top:8px}
     a{color:#2563eb;text-decoration:none}
     .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
     .btn{border:1px solid #d1d5db;background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
     .btn:hover{background:#f3f4f6}
-    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;opacity:0;transition:.2s}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:8px 12px;border-radius:8px;font-size:13px;opacity:0;transition:.2s;z-index:10001}
     .toast.show{opacity:1}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:16px;z-index:10000}
+    .modal.open{display:flex}
+    .modal img{width:auto;height:auto;max-width:95vw;max-height:90vh;object-fit:contain;cursor:zoom-out}
+    .modal .close{position:absolute;top:12px;left:12px;background:#fff;border:0;border-radius:999px;padding:8px 10px;cursor:pointer;font-weight:bold}
     @media (max-width:700px){.card{grid-template-columns:1fr} img{height:180px}}
   </style>
 </head>
@@ -27,6 +31,10 @@
     <div id="list">טוען...</div>
   </div>
   <div id="toast" class="toast">הועתק</div>
+  <div id="imgModal" class="modal" aria-hidden="true">
+    <button class="close" id="closeModal">✕</button>
+    <img id="modalImg" src="" alt="preview" />
+  </div>
   <script>
     function parseCSV(text){
       const rows=[]; let i=0, cur='', row=[], q=false;
@@ -52,6 +60,13 @@
       }
     }
 
+    const modal=document.getElementById('imgModal');
+    const modalImg=document.getElementById('modalImg');
+    const closeModal=()=>{ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); modalImg.src=''; };
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+    modal.addEventListener('click',(e)=>{ if(e.target===modal || e.target===modalImg) closeModal(); });
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeModal(); });
+
     fetch('./data.csv').then(r=>r.text()).then(t=>{
       const rows=parseCSV(t); const head=rows.shift()||[];
       const idx=Object.fromEntries(head.map((h,i)=>[h.trim(),i]));
@@ -72,6 +87,7 @@
           </div>`;
         el.querySelector('[data-copy-prompt]')?.addEventListener('click',()=>copyText(prompt,'פרומפט'));
         el.querySelector('[data-copy-image]')?.addEventListener('click',()=>copyText(img,'כתובת תמונה'));
+        el.querySelector('img')?.addEventListener('click',()=>{ if(!img) return; modalImg.src=img; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); });
         list.appendChild(el);
       });
       if(!rows.length) list.innerHTML='אין נתונים להצגה';
